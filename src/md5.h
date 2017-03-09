@@ -24,7 +24,16 @@ documentation and/or software.*/
 
 #ifndef MD5_H
 #define MD5_H
-#include "types.h"
+#ifndef TYPES_H
+#define TYPES_H
+typedef unsigned char *POINTER;
+typedef unsigned char BYTE;
+typedef unsigned char UCHAR;
+typedef unsigned short int WORD;
+typedef int LONG;
+typedef unsigned int DWORD;
+typedef unsigned int UINT4;
+#endif
 
 /* MD5 context. */
 typedef struct
