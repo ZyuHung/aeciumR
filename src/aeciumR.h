@@ -28,7 +28,7 @@ struct usrinfoSet{
 
 struct infoset{
 	struct sockaddr_in * pss;
-	struct usrinfo * psu;
+	struct usrinfoSet * psu;
 };
 
 void get_session(const char * const pkt, struct usrinfoSet * psu);
