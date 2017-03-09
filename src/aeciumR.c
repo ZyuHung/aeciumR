@@ -13,22 +13,11 @@ void usage()
 	puts("\t-p | --password\n\t\tUser password");
 	puts("\t-d | --device\n\t\tNetwork card interface");
 	puts("\t-i | --host\n\t\tServer IP");
-	puts("\t-s | --service\n\t\tSevices type.eg:int");
-	puts("\t-v | --version\n\t\tShow procedure version");
+	puts("\t-v | --version\n\t\tShow the aeciumR version");
 	//puts("\t-q | --quit\n\t-e | --exit\n\t-l | --leave\n\t\tQuit procedure, leave Internet");
 	puts("\t-h | --help\n\t\tShow usage");
 	exit(0);
 }
-
-/*static void serverInit(struct infoset * const pinfo)
-{
-	struct sockaddr_in *pss = pinfo -> pss;
-	struct usrinfoSet *psu = pinfo -> psu;
-	memset(pss, 0x0, sizeof(struct sockaddr_in));
-	pss -> sin_family = AF_INET;
-	pss -> sin_port = htons(SERVER_PORT_2);
-	pss -> sin_addr.s_addr = inet_addr(INIT_SERVER);
-}*/
 
 void check_arg(int argc, char **argv, struct infoset * const pinfo)
 {
@@ -39,13 +28,12 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 		{"password", 1, NULL, 'p'},
 		{"device", 1, NULL, 'd'},
 		{"host", 1, NULL, 'i'},
-		{"services", 1, NULL, 's'},
 		{"version",0,NULL, 'v'},
 		{"help",0,NULL, 'h'},
 		{NULL, 0, NULL, 0}
 	};
 	
-	while ((c = getopt_long(argc, argv, "u:p:d:i:s:v:h", options, &index)) != -1)
+	while ((c = getopt_long(argc, argv, "u:p:d:i:v:h", options, &index)) != -1)
 	{
 			switch (c) {
 				case 'u':
@@ -60,9 +48,6 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 				case 'i':
 					strcpy(pui -> host_ip, optarg);
 					break;
-				case 's':
-					strcpy(pui -> service, optarg);
-					break;
 				case 'v':
 					puts(VERSION);
 					exit(0);
@@ -74,9 +59,9 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 				default:
 					usage();
 					break;
-			}
 		}
 	}
+}
 
 int Init(struct infoset * const pinfo)
 {
@@ -129,7 +114,7 @@ void pktDecrypt(char *s, int len)
 	}
 }
 
-/* this fuction is not finished now.
+/* this fuction is not finished yet.
 void get_server(int sockfd,struct infoset * const pinfo){
 	char md5[0x10] = {0x0};
 	int  md5len = 0x10;
@@ -211,15 +196,15 @@ void get_server(int sockfd,struct infoset * const pinfo){
 	}	
 }
 */
-/*
-bool get_service(int sockfd, struct infoset * const pinfo){
+
+bool try_get_service(int sockfd, struct infoset * const pinfo){
 	char md5[0x10] = {0x0};
 	int  md5len = 0x10;
 	char *pkt, *ppkt;
 	struct usrinfoSet *psu = pinfo -> psu;
 	struct sockaddr_in *pss = pinfo -> pss;
 	
-	unsigned int iplen = strlen(psu -> local_ip), maclen = 0x6, hostlen = strlen(psu -> host_ip);
+	unsigned int maclen = 0x6;
 	int sendbytes = 33;
 	pkt = (char *)calloc(sendbytes, sizeof(char));
 	ppkt = pkt;
@@ -243,56 +228,90 @@ bool get_service(int sockfd, struct infoset * const pinfo){
 	ComputeHash((unsigned char *)pkt + 2, (unsigned char *)pkt, pkt[1]);
 	pktEncrypt(pkt, pkt[1]);
 
+//******************---------------socket init----------------***************//
 	memset(pss, 0x0, sizeof(struct sockaddr_in));	//socket init
 	pss -> sin_family = AF_INET;
 	pss -> sin_port = htons(SERVER_PORT_1);
 	pss -> sin_addr.s_addr = inet_addr(psu -> host_ip);
 	
+	struct timeval timeout;   //socket timeout   
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+
+	if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
+				sizeof(timeout)) < 0)
+		puts("Setsockopt Failed\n");
+
+	if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
+				sizeof(timeout)) < 0)
+		puts("Setsockopt Failed\n");
+
+//******************---------------socket init----------------***************//
+	
 	if ( sendto(sockfd, pkt, (size_t)(ppkt - pkt), 0, (struct sockaddr *)(pinfo -> pss), sizeof (struct sockaddr)) == -1 ) {
 			perror("sendto");
 			exit(1);
 		}
-	puts("Send Search Service Packet Success!\n");
-	free(pkt);
-	
-	int pkt_recv_size = 0x100;	//max recvice packet size
+	puts("Send Search Service Packet Success!");
+	free(pkt);		
+	int pkt_recv_size = 0x1000;	//max recvice packet size
 	char * const pkt_recv = (char *)calloc(pkt_recv_size, sizeof(char));
 	socklen_t addrlen = sizeof(struct sockaddr);
-	
+		
 	int recvsize = recvfrom(sockfd, pkt_recv, pkt_recv_size, 0, (struct sockaddr *)(pinfo -> pss), &addrlen);
 	if ( recvsize < 0x0 )
 	{
-		puts("Recvice Size Error!\n");
-		exit(0);
+		puts("Recvice Size Error!");
+		puts("Search Service Failed!Retry!");
+		free(pkt_recv);
+		return false;
 	}
 	else 
 	{
 		if ( recvsize >= pkt_recv_size ) {
 			pkt_recv[pkt_recv_size - 1] = 0x0;
-			exit(0);
+			puts("Recvice Size Error!");
+			puts("Search Service Failed!Retry!");
+			free(pkt_recv);
+			return false;
 		}
+		pktDecrypt(pkt_recv, pkt_recv_size);
+		memcpy(md5, pkt_recv + 2, md5len);
+		memset(pkt_recv + 2, 0x0, md5len);
+		ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
+		
+		if (memcmp(md5, pkt_recv + 2, md5len)){		//check md5
+		puts("Packet MD5 value invalid!");
+		free(pkt_recv);
+		return false;
+		}
+		else{
+			get_service(pkt_recv,psu);
+			free(pkt_recv);
+			return true;
+		}
+
 	}
-	pktDecrypt(pkt_recv, pkt_recv_size);
-	memcpy(md5, pkt_recv + 2, md5len);
-	memset(pkt_recv + 2, 0x0, md5len);
-	ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
 	
-	if ( memcmp(md5, pkt_recv + 2, md5len) )	//check md5
-	{
-		puts("Packet MD5 value invalid!\n");
-		exit(1);
-	}
-	else{
-		puts("Search Service Success!\n");
-	}
-}*/
+}
+
+void get_service(const char * const pkt, struct usrinfoSet * psu)
+{
+	const char * ppkt = pkt;
+	ppkt += 0x12;
+	if ( * ppkt == 0xa ) {
+		++ ppkt;
+		psu -> service = (char *)calloc(*ppkt - 1, sizeof(char));
+		strncpy(psu -> service, ppkt + 1, (*ppkt) -2 );
+		printf("Get Service Type: %s\n",psu -> service);
+}
+}
 
 bool try_login(int sockfd, struct infoset * const pinfo){
 	char md5[0x10] = {0x0};
 	int  md5len = 0x10, maclen = 0x06;
 	char *pkt, *ppkt;
 	struct usrinfoSet *psu = pinfo -> psu;
-	struct sockaddr_in *pss = pinfo -> pss;
 	
 	unsigned int iplen = strlen(psu -> local_ip), usrlen = strlen(psu -> usr), pwdlen = strlen(psu -> pw), serlen = strlen(psu -> service);
 	
@@ -343,23 +362,6 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 	
 	ComputeHash((unsigned char *)pkt + 2, (unsigned char *)pkt, pkt[1]);	//md5
 	pktEncrypt(pkt, pkt[1]);	//encrypt it
-
-	memset(pss, 0x0, sizeof(struct sockaddr_in));	//socket init
-	pss -> sin_family = AF_INET;
-	pss -> sin_port = htons(SERVER_PORT_1);
-	pss -> sin_addr.s_addr = inet_addr(psu -> host_ip);
-	
-	struct timeval timeout;   //socket timeout   
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-
-	if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
-				sizeof(timeout)) < 0)
-		puts("setsockopt failed\n");
-
-	if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
-				sizeof(timeout)) < 0)
-		puts("setsockopt failed\n");
 	
 	if ( sendto(sockfd, pkt, (size_t)(ppkt - pkt), 0, (struct sockaddr *)(pinfo -> pss), sizeof (struct sockaddr)) == -1 ) {
 			perror("sendto");
@@ -384,44 +386,37 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 	{
 		if ( recvsize >= pkt_recv_size ) {
 			pkt_recv[pkt_recv_size - 1] = 0x0;
+			puts("Recvice Size Error!");
 			puts("Login Failed!Relogin!");
 			free(pkt_recv);
 			return false;
 		}
 	}
-	//int pktlen = pkt[1];
-	//if ( pktlen <= pkt_recv_size && pktlen > 0x11){
-		pktDecrypt(pkt_recv, pkt_recv_size);
-		memcpy(md5, pkt_recv + 2, md5len);
-		memset(pkt_recv + 2, 0x0, md5len);
-		ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
-	
-		if (memcmp(md5, pkt_recv + 2, md5len)){	//check md5
-		puts("Packet MD5 value invalid!");
-		free(pkt_recv);
-		return false;
-		}
-		else{
-		bool login_status = (bool)pkt_recv[0x14];
-		if (login_status){
-			get_session(pkt_recv, psu);
-			free(pkt_recv);
-			puts("Login success!");
-			return login_status;
-		}
-		else{
-			puts("Login failed!Relogin!");
-			free(pkt_recv);
-			return login_status;
-		}
-		}
+	pktDecrypt(pkt_recv, pkt_recv_size);
+	memcpy(md5, pkt_recv + 2, md5len);
+	memset(pkt_recv + 2, 0x0, md5len);
+	ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
+
+	if (memcmp(md5, pkt_recv + 2, md5len)){	//check md5
+	puts("Packet MD5 value invalid!");
+	free(pkt_recv);
+	return false;
 	}
-	//else{
-		//puts("Invalid package size!");
-		//free(pkt_recv);
-		//return false;
-	//}
-//}
+	else{
+	bool login_status = (bool)pkt_recv[0x14];
+	if (login_status){
+		get_session(pkt_recv, psu);
+		free(pkt_recv);
+		puts("Login Success!");
+		return login_status;
+	}
+	else{
+		puts("Login Failed!Relogin!");
+		free(pkt_recv);
+		return login_status;
+	}
+	}
+}
 
 void get_session(const char * const pkt, struct usrinfoSet * psu)
 {
@@ -441,7 +436,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	int  md5len = 0x10, maclen = 0x06;
 	char *pkt, *ppkt;
 	struct usrinfoSet *psu = pinfo -> psu;
-	//struct sockaddr_in *pss = pinfo -> pss;
 	
 	unsigned int iplen = strlen(psu -> local_ip),sessionlen = strlen(psu -> session);
 	
@@ -456,7 +450,7 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	ppkt = pkt;
 	*ppkt++ = 0x03;
 	*ppkt++ = sendbytes;
-	ppkt += 0x10;	//0x00*16 for md5 hash
+	ppkt += 0x10;	//0x00 * 16 for md5 hash
 
 	*ppkt++ = 0x08;
 	*ppkt++ = sessionlen + 2;
@@ -480,7 +474,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	*ppkt++ = index_3;
 	*ppkt++ = index_2;
 	*ppkt++ = index_1;
-	//printf("%d %d %d %d\n",index_4,index_3,index_2,index_1);
 	
 	*ppkt++ = 0x2a;	/*block*/
 	*ppkt++ = 0x06;
@@ -515,8 +508,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	socklen_t addrlen = sizeof(struct sockaddr);
 	
 	int recvsize = recvfrom(sockfd, pkt_recv, pkt_recv_size, 0, (struct sockaddr *)(pinfo -> pss), &addrlen);
-	//printf("recvsize %d\n",recvsize);
-	//printf("max size %d\n",pkt_recv_size);
 	if ( recvsize < 0x0 )
 	{
 		puts("Recvice Size Error!\n");
@@ -528,47 +519,39 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	{
 		if ( recvsize >= pkt_recv_size ) {
 			pkt_recv[pkt_recv_size - 1] = 0x0;
+			puts("Recvice Size Error!");
 			puts("Breathe Failed!Relogin!");
 			free(pkt_recv);
 			return false;
 		}
 	}
-	//int pktlen = pkt[1];
-	//if ( pktlen <= pkt_recv_size && pktlen > 0x11){
-		pktDecrypt(pkt_recv, pkt_recv_size);
-		memcpy(md5, pkt_recv + 2, md5len);
-		memset(pkt_recv + 2, 0x0, md5len);
-		ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
-	
-		if (memcmp(md5, pkt_recv + 2, md5len)){	//check md5
-		puts("Packet MD5 value invalid!\n");
-		free(pkt_recv);
-		return false;
-		}
-		else{
-		bool login_status = (bool)pkt_recv[0x14];
-		if (login_status){
-			puts("Breathe success");
-			free(pkt_recv);
-			return login_status;
-		}
-		else{
-			puts("Breathe failed!Relogin!");
-			free(pkt_recv);
-			return login_status;
-		}
-		}
+	pktDecrypt(pkt_recv, pkt_recv_size);
+	memcpy(md5, pkt_recv + 2, md5len);
+	memset(pkt_recv + 2, 0x0, md5len);
+	ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
+
+	if (memcmp(md5, pkt_recv + 2, md5len)){	//check md5
+	puts("Packet MD5 value invalid!\n");
+	free(pkt_recv);
+	return false;
 	}
-	//else{
-		//puts("Invalid package size!");
-		//free(pkt_recv);
-		//return false;
-	//}
-//}
+	else{
+	bool login_status = (bool)pkt_recv[0x14];
+	if (login_status){
+		puts("Breathe Success");
+		free(pkt_recv);
+		return login_status;
+	}
+	else{
+		puts("Breathe Failed!Relogin!");
+		free(pkt_recv);
+		return login_status;
+	}
+	}
+}
 
 int index_bits4(long index){
 	int tmp = index >> 24;
-	//printf("%d\n",tmp);
 	return tmp;
 }
 int index_bits3(long index){
@@ -605,11 +588,16 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	else{
-		if (argc == 11){
+		if (argc == 9){
 		
 		check_arg(argc, argv, &info);
 		while(1){
 			int sockfd = Init(&info);
+			bool search_status = try_get_service(sockfd, &info);
+			while(!search_status){
+				sleep(5);
+				search_status = try_get_service(sockfd, &info);
+			}
 			bool login_status = try_login(sockfd, &info);
 			while (!login_status){
 				sleep(5);

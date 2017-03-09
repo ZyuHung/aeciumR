@@ -15,11 +15,11 @@ struct usrinfoSet{
 	char * usr;
 	char * pw;
 	char * session;
+	char * service;
 	char dev[0xc];
 	char local_ip[0x10];
 	char host_ip[0x10];
 	char mac[0x8];
-	char service[0xc];
 	bool login_states;
 	bool recv_states;
 	bool find_host;
@@ -32,6 +32,7 @@ struct infoset{
 };
 
 void get_session(const char * const pkt, struct usrinfoSet * psu);
+void get_service(const char * const pkt, struct usrinfoSet * psu);
 int index_bits1(long index);
 int index_bits2(long index);
 int index_bits3(long index);
