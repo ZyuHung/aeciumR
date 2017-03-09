@@ -1,6 +1,5 @@
 bin_PROGRAMS = aeciumR
 aeciumR_SOURCES = aeciumR.c \
-		  types.h \
 		  aeciumR.h \
 		  md5.c \
 		  md5.h
