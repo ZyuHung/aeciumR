@@ -389,7 +389,7 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 			return false;
 		}
 	}
-	int pktlen = pkt[1];
+	//int pktlen = pkt[1];
 	//if ( pktlen <= pkt_recv_size && pktlen > 0x11){
 		pktDecrypt(pkt_recv, pkt_recv_size);
 		memcpy(md5, pkt_recv + 2, md5len);
@@ -441,7 +441,7 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	int  md5len = 0x10, maclen = 0x06;
 	char *pkt, *ppkt;
 	struct usrinfoSet *psu = pinfo -> psu;
-	struct sockaddr_in *pss = pinfo -> pss;
+	//struct sockaddr_in *pss = pinfo -> pss;
 	
 	unsigned int iplen = strlen(psu -> local_ip),sessionlen = strlen(psu -> session);
 	
@@ -533,7 +533,7 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 			return false;
 		}
 	}
-	int pktlen = pkt[1];
+	//int pktlen = pkt[1];
 	//if ( pktlen <= pkt_recv_size && pktlen > 0x11){
 		pktDecrypt(pkt_recv, pkt_recv_size);
 		memcpy(md5, pkt_recv + 2, md5len);
