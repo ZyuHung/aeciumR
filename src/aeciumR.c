@@ -421,13 +421,12 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 void get_session(const char * const pkt, struct usrinfoSet * psu)
 {
 	const char * ppkt = pkt;
-	ppkt += 0x14;
-	ppkt += *(ppkt - 1) - 0x2;
-
+	ppkt += 0x15;
 	if ( *ppkt == 0x8 ) {
 		++ ppkt;
 		psu -> session = (char *)calloc(*ppkt + 1, sizeof(char));
 		strncpy(psu -> session, ppkt + 1, *ppkt);
+		puts(psu -> session);
 }
 }
 
