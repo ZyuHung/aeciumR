@@ -389,8 +389,7 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 			return false;
 		}
 	}
-	//int pktlen = pkt[1];
-	//if ( pktlen <= pkt_recv_size && pktlen > 0x11){
+	
 		pktDecrypt(pkt_recv, pkt_recv_size);
 		memcpy(md5, pkt_recv + 2, md5len);
 		memset(pkt_recv + 2, 0x0, md5len);
@@ -416,23 +415,16 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 		}
 		}
 	}
-	//else{
-		//puts("Invalid package size!");
-		//free(pkt_recv);
-		//return false;
-	//}
-//}
 
 void get_session(const char * const pkt, struct usrinfoSet * psu)
 {
 	const char * ppkt = pkt;
-	ppkt += 0x14;
-	ppkt += *(ppkt - 1) - 0x2;
-
+	ppkt += 0x15;
 	if ( *ppkt == 0x8 ) {
 		++ ppkt;
 		psu -> session = (char *)calloc(*ppkt + 1, sizeof(char));
 		strncpy(psu -> session, ppkt + 1, *ppkt);
+		puts(psu -> session);
 }
 }
 
@@ -441,7 +433,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	int  md5len = 0x10, maclen = 0x06;
 	char *pkt, *ppkt;
 	struct usrinfoSet *psu = pinfo -> psu;
-	//struct sockaddr_in *pss = pinfo -> pss;
 	
 	unsigned int iplen = strlen(psu -> local_ip),sessionlen = strlen(psu -> session);
 	
@@ -533,8 +524,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 			return false;
 		}
 	}
-	//int pktlen = pkt[1];
-	//if ( pktlen <= pkt_recv_size && pktlen > 0x11){
 		pktDecrypt(pkt_recv, pkt_recv_size);
 		memcpy(md5, pkt_recv + 2, md5len);
 		memset(pkt_recv + 2, 0x0, md5len);
@@ -559,12 +548,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 		}
 		}
 	}
-	//else{
-		//puts("Invalid package size!");
-		//free(pkt_recv);
-		//return false;
-	//}
-//}
 
 int index_bits4(long index){
 	int tmp = index >> 24;
