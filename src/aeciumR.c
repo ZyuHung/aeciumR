@@ -570,24 +570,29 @@ int main(int argc, char *argv[])
 	
 	memset(&usrinfo, 0x0, sizeof(struct usrinfoSet));	//clear
 	if (argc == 9){		
-	check_arg(argc, argv, &info);
-	while(1){
-		int sockfd = Init(&info);
-		bool login_status = try_login(sockfd, &info);
-		while (!login_status){
-			sleep(5);
-			login_status = try_login(sockfd, &info);
-		}
-		long index = 0x10000000;
-		bool breath_status = try_breathe(sockfd, &info, index);
-		while (breath_status){
-			index += 3;
-			sleep(20);
-			breath_status = try_breathe(sockfd, &info, index);
+		check_arg(argc, argv, &info);
+		while(1){
+			int sockfd = Init(&info);
+			bool search_status = try_get_service(sockfd, &info);
+			while(!search_status){
+				sleep(5);
+				search_status = try_get_service(sockfd, &info);
 			}
-		close(sockfd);
+			bool login_status = try_login(sockfd, &info);
+			while (!login_status){
+				sleep(5);
+				login_status = try_login(sockfd, &info);
+			}
+			long index = 0x10000000;
+			bool breath_status = try_breathe(sockfd, &info, index);
+			while (breath_status){
+				index += 3;
+				sleep(20);
+				breath_status = try_breathe(sockfd, &info, index);
+			}
+			close(sockfd);
+			}
 		}
-	}
 	else{
 		usage();
 	}
