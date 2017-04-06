@@ -2,20 +2,18 @@
 #define SERVER_PORT_1 3848
 #define SERVER_PORT_2 3850	//not use for now
 #define SERVER_PORT_3 3849	//not use for now
-#define VERSION "1.0.0"
+#define VERSION "aeciumR version:1.0.0"
 #define INIT_SERVER "1.1.1.8"
 
 void usage()
 {
-	puts("USAGE");
-	puts("OPTIONS");
+	puts(VERSION);
+	puts("Usage:[Options]");
 	puts("\t-u | --username\n\t\tUser name");
 	puts("\t-p | --password\n\t\tUser password");
 	puts("\t-d | --device\n\t\tNetwork card interface");
 	puts("\t-i | --host\n\t\tServer IP");
-	puts("\t-v | --version\n\t\tShow the aeciumR version");
 	//puts("\t-q | --quit\n\t-e | --exit\n\t-l | --leave\n\t\tQuit procedure, leave Internet");
-	puts("\t-h | --help\n\t\tShow usage");
 	exit(0);
 }
 
@@ -28,12 +26,10 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 		{"password", 1, NULL, 'p'},
 		{"device", 1, NULL, 'd'},
 		{"host", 1, NULL, 'i'},
-		{"version",0,NULL, 'v'},
-		{"help",0,NULL, 'h'},
 		{NULL, 0, NULL, 0}
 	};
 	
-	while ((c = getopt_long(argc, argv, "u:p:d:i:v:h", options, &index)) != -1)
+	while ((c = getopt_long(argc, argv, "u:p:d:i:", options, &index)) != -1)
 	{
 			switch (c) {
 				case 'u':
@@ -47,14 +43,6 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 					break;
 				case 'i':
 					strcpy(pui -> host_ip, optarg);
-					break;
-				case 'v':
-					puts(VERSION);
-					exit(0);
-					break;
-				case 'h':
-					usage();
-					exit(0);
 					break;
 				default:
 					usage();
@@ -581,40 +569,26 @@ int main(int argc, char *argv[])
 	info.psu = &usrinfo;
 	
 	memset(&usrinfo, 0x0, sizeof(struct usrinfoSet));	//clear
-	if (argc == 1)
-	{
-		usage();
-		exit(1);
+	if (argc == 9){		
+	check_arg(argc, argv, &info);
+	while(1){
+		int sockfd = Init(&info);
+		bool login_status = try_login(sockfd, &info);
+		while (!login_status){
+			sleep(5);
+			login_status = try_login(sockfd, &info);
+		}
+		long index = 0x10000000;
+		bool breath_status = try_breathe(sockfd, &info, index);
+		while (breath_status){
+			index += 3;
+			sleep(20);
+			breath_status = try_breathe(sockfd, &info, index);
+			}
+		close(sockfd);
+		}
 	}
 	else{
-		if (argc == 9){
-		
-		check_arg(argc, argv, &info);
-		while(1){
-			int sockfd = Init(&info);
-			bool search_status = try_get_service(sockfd, &info);
-			while(!search_status){
-				sleep(5);
-				search_status = try_get_service(sockfd, &info);
-			}
-			bool login_status = try_login(sockfd, &info);
-			while (!login_status){
-				sleep(5);
-				login_status = try_login(sockfd, &info);
-			}
-			long index = 0x10000000;
-			bool breath_status = try_breathe(sockfd, &info, index);
-			while (breath_status){
-				index += 3;
-				sleep(20);
-				breath_status = try_breathe(sockfd, &info, index);
-			}
-			close(sockfd);
-		}
-		}
-		else{
-			usage();
-			exit(1);
-		}
+		usage();
 	}
 }
