@@ -36,5 +36,5 @@ $ aeciumR -u admin -p admin -d eth0.2 -s int -i 210.45.194.10 >/dev/null &
 ```
 
 ## 致谢
-> [swiftz-protocal](https://github.com/xingrz/swiftz-protocal)
+> [swiftz-protocal](https://github.com/xingrz/swiftz-protocal)  
 > [aecium](https://github.com/Red54/aecium)
