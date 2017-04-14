@@ -370,11 +370,11 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 		if (login_status){
 			get_session(pkt_recv, psu);
 			free(pkt_recv);
-			puts("Login success!");
+			puts("Login Success!");
 			return login_status;
 		}
 		else{
-			puts("Login failed!Relogin!");
+			puts("Login Failed!Relogin!");
 			free(pkt_recv);
 			return login_status;
 		}
@@ -494,12 +494,12 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 
 		bool login_status = (bool)pkt_recv[0x14];
 		if (login_status){
-			puts("Breathe success");
+			puts("Breathe Success");
 			free(pkt_recv);
 			return login_status;
 		}
 		else{
-			puts("Breathe failed!Relogin!");
+			puts("Breathe Failed!Relogin!");
 			free(pkt_recv);
 			return login_status;
 		}
