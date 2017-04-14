@@ -187,16 +187,8 @@ void get_server(int sockfd,struct infoset * const pinfo){
 	pktDecrypt(pkt_recv, pkt_recv_size);
 	memcpy(md5, pkt_recv + 2, md5len);
 	memset(pkt_recv + 2, 0x0, md5len);
-	ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
-	
-	if ( memcmp(md5, pkt_recv + 2, md5len) ) 
-	{
-		puts("Packet MD5 value invalid!\n");
-		exit(1);
-	}
-	else{
-		puts("Search Host Success!\n");
-	}	
+
+	puts("Search Host Success!\n");	
 }
 */
 /*
@@ -263,16 +255,8 @@ bool get_service(int sockfd, struct infoset * const pinfo){
 	pktDecrypt(pkt_recv, pkt_recv_size);
 	memcpy(md5, pkt_recv + 2, md5len);
 	memset(pkt_recv + 2, 0x0, md5len);
-	ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
 	
-	if ( memcmp(md5, pkt_recv + 2, md5len) )	//check md5
-	{
-		puts("Packet MD5 value invalid!\n");
-		exit(1);
-	}
-	else{
-		puts("Search Service Success!\n");
-	}
+	puts("Search Service Success!\n");
 }*/
 
 bool try_login(int sockfd, struct infoset * const pinfo){
@@ -379,16 +363,9 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 	}
 	
 		pktDecrypt(pkt_recv, pkt_recv_size);
-		memcpy(md5, pkt_recv + 2, md5len);
+		memcpy(md5, pkt_recv + 2, md5len); //copy recevice packet MD5 
 		memset(pkt_recv + 2, 0x0, md5len);
-		ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
-	
-		if (memcmp(md5, pkt_recv + 2, md5len)){	//check md5
-		puts("Packet MD5 value invalid!");
-		free(pkt_recv);
-		return false;
-		}
-		else{
+
 		bool login_status = (bool)pkt_recv[0x14];
 		if (login_status){
 			get_session(pkt_recv, psu);
@@ -400,7 +377,6 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 			puts("Login failed!Relogin!");
 			free(pkt_recv);
 			return login_status;
-		}
 		}
 	}
 
@@ -515,14 +491,7 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 		pktDecrypt(pkt_recv, pkt_recv_size);
 		memcpy(md5, pkt_recv + 2, md5len);
 		memset(pkt_recv + 2, 0x0, md5len);
-		ComputeHash((unsigned char *)pkt_recv + 2, (unsigned char *)pkt_recv, pkt[1]);
-	
-		if (memcmp(md5, pkt_recv + 2, md5len)){	//check md5
-		puts("Packet MD5 value invalid!\n");
-		free(pkt_recv);
-		return false;
-		}
-		else{
+
 		bool login_status = (bool)pkt_recv[0x14];
 		if (login_status){
 			puts("Breathe success");
@@ -533,7 +502,6 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 			puts("Breathe failed!Relogin!");
 			free(pkt_recv);
 			return login_status;
-		}
 		}
 	}
 
