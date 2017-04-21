@@ -28,11 +28,11 @@ $ make install
 ```
 运行
 ```
-$ aeciumR -u admin -p admin -d eth0.2 -s int -i 210.45.194.10 
+$ aeciumR -u admin -p admin -d eth0.2 -i 210.45.194.10 
 ```
 后台运行
 ```
-$ aeciumR -u admin -p admin -d eth0.2 -s int -i 210.45.194.10 >/dev/null &
+$ aeciumR -u admin -p admin -d eth0.2 -i 210.45.194.10 >/dev/null &
 ```
 
 ## 致谢
