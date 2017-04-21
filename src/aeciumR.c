@@ -15,7 +15,6 @@ void usage()
 	puts("\t-p | --password\n\t\tUser password");
 	puts("\t-d | --device\n\t\tNetwork card interface");
 	puts("\t-i | --host\n\t\tServer IP");
-	puts("\t-i | --service\n\t\tService type. eg:int internet");
 	//puts("\t-q | --quit\n\t-e | --exit\n\t-l | --leave\n\t\tQuit procedure, leave Internet");
 	exit(0);
 }
@@ -29,7 +28,6 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 		{"password", 1, NULL, 'p'},
 		{"device", 1, NULL, 'd'},
 		{"host", 1, NULL, 'i'},
-		{"service", 1 , NULL, 's'},
 		{NULL, 0, NULL, 0}
 	};
 	
@@ -48,8 +46,6 @@ void check_arg(int argc, char **argv, struct infoset * const pinfo)
 				case 'i':
 					strcpy(pui -> host_ip, optarg);
 					break;
-				case 's':
-					strcpy(pui -> service, optarg);
 				default:
 					usage();
 					break;
@@ -561,33 +557,7 @@ int main(int argc, char *argv[])
 			close(sockfd);
 			}
 		}
-	else{
-		if(argc == 11){
-		check_arg(argc, argv, &info);
-		while(1){
-			int sockfd = Init(&info);
-			//bool search_status = try_get_service(sockfd, &info);
-			//while(!search_status){
-			//	sleep(5);
-			//	search_status = try_get_service(sockfd, &info);
-			//}
-			bool login_status = try_login(sockfd, &info);
-			while (!login_status){
-				sleep(5);
-				login_status = try_login(sockfd, &info);
-			}
-			long index = 0x10000000;
-			bool breath_status = try_breathe(sockfd, &info, index);
-			while (breath_status){
-				index += 3;
-				sleep(20);
-				breath_status = try_breathe(sockfd, &info, index);
-			}
-			close(sockfd);
-			}
-		}	
-		else{
-			usage();
-		}
+	else{	
+		usage();
 	}
 }
