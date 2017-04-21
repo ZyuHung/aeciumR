@@ -273,7 +273,7 @@ void get_service(const char * const pkt, struct usrinfoSet * psu)
 		++ ppkt;
 		psu -> service = (char *)calloc(*ppkt - 1, sizeof(char));
 		strncpy(psu -> service, ppkt + 1, (*ppkt) -2 );
-		printf("[aeciumR]:Get Service Type: %s\n !",psu -> service);
+		printf("[aeciumR]:Get Service Type: %s\n",psu -> service);
 }
 else{
 	puts("[ERROR]:This Software is not Suitable for you.");
@@ -389,7 +389,7 @@ void get_session(const char * const pkt, struct usrinfoSet * psu)
 		++ ppkt;
 		psu -> session = (char *)calloc(*ppkt + 1, sizeof(char));
 		strncpy(psu -> session, ppkt + 1, *ppkt);
-		printf("[aeciumR]:%s",psu -> session);
+		printf("[aeciumR]:Session -> %s\n",psu -> session);
 }
 }
 
