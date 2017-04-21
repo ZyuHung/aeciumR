@@ -33,7 +33,7 @@ struct infoset{
 
 void get_session(const char * const pkt, struct usrinfoSet * psu);
 void get_service(const char * const pkt, struct usrinfoSet * psu);
-int index_bits1(long index);
-int index_bits2(long index);
-int index_bits3(long index);
-int index_bits4(long index);
+unsigned int index_bits1(long index);
+unsigned int index_bits2(long index);
+unsigned int index_bits3(long index);
+unsigned int index_bits4(long index);
