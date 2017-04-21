@@ -59,16 +59,14 @@ int Init(struct infoset * const pinfo)
 	struct usrinfoSet *psu = pinfo -> psu;
 	
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-		printf("[ERROR]");
-		perror("socket");
+		perror("[ERROR]:Socket");
 		exit(1);
 	}
 	struct ifreq addr;
 	memset(&addr, 0x0, sizeof addr);
 	strcpy(addr.ifr_name, psu -> dev);
 	if (ioctl(sockfd, SIOCGIFADDR, (char *)&addr) == -1) {
-		printf("[ERROR]");
-		perror("ioctl");
+		perror("[ERROR]:ioctl");
 		exit(1);
 	}
 
@@ -78,8 +76,7 @@ int Init(struct infoset * const pinfo)
 	strcpy(addr.ifr_name, (*psu).dev);
 
 	if(ioctl(sockfd, SIOCGIFHWADDR, (char *)&addr) == -1) {
-		puts("[ERROR]");
-		perror("ioctl");
+		perror("[ERROR]:ioctl");
 		exit(1);
 	}
 
@@ -230,8 +227,7 @@ bool try_get_service(int sockfd, struct infoset * const pinfo){
 //******************---------------socket init----------------***************//
 	
 	if ( sendto(sockfd, pkt, (size_t)(ppkt - pkt), 0, (struct sockaddr *)(pinfo -> pss), sizeof (struct sockaddr)) == -1 ) {
-			printf("[ERROR]:");
-			perror("sendto");
+			perror("[ERROR]:Sendto");
 			exit(1);
 		}
 	puts(VERSION);
@@ -339,8 +335,7 @@ bool try_login(int sockfd, struct infoset * const pinfo){
 	pktEncrypt(pkt, pkt[1]);	//encrypt it
 	
 	if ( sendto(sockfd, pkt, (size_t)(ppkt - pkt), 0, (struct sockaddr *)(pinfo -> pss), sizeof (struct sockaddr)) == -1 ) {
-			printf("[ERROR]");
-			perror("sendto");
+			perror("[ERROR]:Sendto");
 			exit(1);
 		}
 	puts("[aeciumR]:Send Login Packet Success...Waiting For Response...");
@@ -455,8 +450,7 @@ bool try_breathe(int sockfd, struct infoset * const pinfo ,long index){
 	pktEncrypt(pkt, pkt[1]);	//encrypt it
 	
 	if ( sendto(sockfd, pkt, (size_t)(ppkt - pkt), 0, (struct sockaddr *)(pinfo -> pss), sizeof (struct sockaddr)) == -1 ) {
-			printf("[ERROR]");
-			perror("sendto");
+			perror("[ERROR]:Sendto");
 			exit(1);
 		}
 	puts("[aeciumR]:Send Breathe Packet Success...Wait For Response...");
